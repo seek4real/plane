@@ -5,9 +5,10 @@ use std::fmt;
  * method.rs
  * RequestMethod
  */
-#[warn(unused)]
+#[allow(unused)]
 pub enum RequestMethod {
     GET(String),
+    
     POST(String),
     Delete(String),
     QUERY(String),
@@ -26,6 +27,7 @@ impl fmt::Display for RequestMethod {
  }
 
 impl RequestMethod {
+    #[allow(unused)]
     pub fn value(&self) -> String {
         let val = match *self {
             RequestMethod::GET(ref s) => s.to_string(),

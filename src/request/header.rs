@@ -13,7 +13,7 @@
 
  pub struct RequestHeader {
     method: RequestMethod,
-    path:   URI,
+    pub path:   URI,
     ver:    HTTPVER,
  }
 

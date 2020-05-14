@@ -1,37 +1,45 @@
 // main program
 
-// mod message;
-mod thread;
-mod request;
 
-// use message::Message;
+
+
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
 use std::fs;
-use thread::ThreadPool;
-use request::header::RequestHeader;
+
+use self::message::Message;
+use self::threadpool::ThreadPool;
+use self::request::header::RequestHeader;
+
+mod message;
+mod threadpool;
+mod work;
+mod request;
 
 fn main()
 {
-    println!("Start Up");
+    println!("Start");
     // let write = Message::Write("tttttt".to_string());
     // write.call();
 
+    println!("listen port 9999");
     let listener = TcpListener::bind("127.0.0.1:9999").unwrap();
     let pool = ThreadPool::new(4);
 
-    for stream in listener.incoming(){
+    for stream in listener.incoming() {
         // println!("Connection Established.");
         let s = stream.unwrap();
-        pool.execute(|| {
+        let sender = pool.sender.clone();
+        pool.execute( || {
 
-            handle_connection(s);
+            handle_connection(s, sender);
         })
     }
+    println!("Shutdown success");
 }
 
-fn handle_connection(mut stream: TcpStream)
+fn handle_connection(mut stream: TcpStream, sender: std::sync::mpsc::Sender<Message>)
 {
     let mut buffer = [0; 512];
     stream.read(&mut buffer).expect("read TcpStream error."); //这里还可以使用unrawp()
@@ -63,14 +71,13 @@ fn handle_connection(mut stream: TcpStream)
 
     let str_header = req_iter.next().unwrap();
     let req_header = RequestHeader::translate(str_header);
-    println!("Request:{} ", req_header);
 
-    if req_header.eq_path(String::from("/hi")) {
-        println!("say hi");
-    } else if req_header.eq_path(String::from("/favicon")) {
-        println!("favicon request");
+    if req_header.eq_path(String::from("/favicon")) {
+        // println!("favicon request");
+    } else if req_header.eq_path(String::from("/shutdown")) {
+        sender.send(Message::ShutDown).unwrap();
     } else {
-        println!("request else");
+        println!("request path:{0}", req_header.path);
     }
 }
 
