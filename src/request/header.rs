@@ -29,7 +29,10 @@
             _  => RequestMethod::UNSUPPORT,
         };
 
-        let uri: URI = req_args.next().unwrap().to_string();
+        let mut uri: URI = String::from("/");
+        if let Some(u) = req_args.next() {
+            uri = u.to_string();
+        }
         let ver: HTTPVER = req_args.next().unwrap().to_string();
 
         RequestHeader {

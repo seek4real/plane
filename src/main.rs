@@ -8,20 +8,15 @@ use std::net::TcpListener;
 use std::net::TcpStream;
 use std::fs;
 
-use self::message::Message;
-use self::threadpool::ThreadPool;
+use self::base::message::Message;
+use self::base::threadpool::ThreadPool;
 use self::request::header::RequestHeader;
 
-mod message;
-mod threadpool;
-mod work;
+mod base;
 mod request;
 
 fn main()
 {
-    println!("Start");
-    // let write = Message::Write("tttttt".to_string());
-    // write.call();
 
     println!("listen port 9999");
     let listener = TcpListener::bind("127.0.0.1:9999").unwrap();
@@ -72,7 +67,8 @@ fn handle_connection(mut stream: TcpStream, sender: std::sync::mpsc::Sender<Mess
     let str_header = req_iter.next().unwrap();
     let req_header = RequestHeader::translate(str_header);
 
-    if req_header.eq_path(String::from("/favicon")) {
+    if req_header.eq_path(String::from("/favicon")) || 
+        req_header.eq_path(String::from("/favicon.ico")){
         // println!("favicon request");
     } else if req_header.eq_path(String::from("/shutdown")) {
         sender.send(Message::ShutDown).unwrap();
