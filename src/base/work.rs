@@ -1,10 +1,4 @@
-// work
-/**
- * 
- */
 
-
- 
 use std::thread;
 use std::sync::mpsc;
 use std::sync::Arc;
@@ -24,20 +18,6 @@ impl Worker {
     pub fn new(id: usize, receiver:Arc<Mutex<mpsc::Receiver<Message>>>) -> Worker 
     {
         let handler = thread::spawn(move || {
-            // while let Ok(msg) = receiver.lock().unwrap().recv(){
-                
-            //     match msg {
-            //         Message::NewJob(job) => {
-            //             println!("Worker {} got a job; executing.", id);
-            //             job();
-            //         },
-            //         Message::ShutDown => {
-            //             println!("Worker {} got Shutdown sign . ", id);
-            //             break;
-            //         },
-            //     }
-            // }
-
             loop {
                 let msg = receiver.lock().unwrap().recv().unwrap();
                 match msg {

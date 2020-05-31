@@ -54,6 +54,7 @@ impl ThreadPool {
 
 impl Drop for ThreadPool {
     fn drop(&mut self) {
+        println!("Drop ThreadPool start");
         for _ in &mut self.workers {
             let res = match self.sender.send(Message::ShutDown) {
                 Ok(result) => result,
@@ -61,6 +62,7 @@ impl Drop for ThreadPool {
             };
             res
         }
+        println!("Shutting down all workers. ");
         for worker in &mut self.workers {
             println!("shutdown worker {} ", worker.id);
             if let Some(t) = worker.handler.take() {

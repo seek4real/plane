@@ -8,33 +8,42 @@ use std::net::TcpListener;
 use std::net::TcpStream;
 use std::fs;
 
-use self::base::message::Message;
+// use self::base::message::Message;
 use self::base::threadpool::ThreadPool;
 use self::request::header::RequestHeader;
+use config::conf;
 
 mod base;
 mod request;
+mod response;
+mod config;
+mod global;
 
 fn main()
 {
 
-    println!("listen port 9999");
-    let listener = TcpListener::bind("127.0.0.1:9999").unwrap();
-    let pool = ThreadPool::new(4);
+    let listener = TcpListener::bind(conf::TARGET_IP_PORT).unwrap();
+    println!("listen on {0}", conf::TARGET_IP_PORT);
+    let pool = ThreadPool::new(conf::COUNT);
 
     for stream in listener.incoming() {
         // println!("Connection Established.");
         let s = stream.unwrap();
-        let sender = pool.sender.clone();
         pool.execute( || {
 
-            handle_connection(s, sender);
-        })
+            handle_connection(s);
+        });
+        unsafe {
+            if !global::IS_RUNNING {
+                println!("IS_RUNNING  break");
+                break;
+            }
+        }
     }
     println!("Shutdown success");
 }
 
-fn handle_connection(mut stream: TcpStream, sender: std::sync::mpsc::Sender<Message>)
+fn handle_connection(mut stream: TcpStream)
 {
     let mut buffer = [0; 512];
     stream.read(&mut buffer).expect("read TcpStream error."); //这里还可以使用unrawp()
@@ -71,7 +80,14 @@ fn handle_connection(mut stream: TcpStream, sender: std::sync::mpsc::Sender<Mess
         req_header.eq_path(String::from("/favicon.ico")){
         // println!("favicon request");
     } else if req_header.eq_path(String::from("/shutdown")) {
-        sender.send(Message::ShutDown).unwrap();
+        // sender.send(Message::ShutDown).unwrap();
+        println!("Shut Down");
+        unsafe {
+            if global::IS_RUNNING {
+                global::IS_RUNNING = false;
+                println!("IS_RUNNING:{0}", global::IS_RUNNING);
+            }
+        }
     } else {
         println!("request path:{0}", req_header.path);
     }
