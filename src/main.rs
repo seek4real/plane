@@ -27,13 +27,14 @@ fn main()
     let pool = ThreadPool::new(conf::COUNT);
 
     for stream in listener.incoming() {
-        // println!("Connection Established.");
+        println!("Connection Established.");
         let s = stream.unwrap();
         pool.execute( || {
 
             handle_connection(s);
         });
         unsafe {
+            println!("check IS_RUNNING :{0}", global::IS_RUNNING);
             if !global::IS_RUNNING {
                 println!("IS_RUNNING  break");
                 break;
@@ -88,6 +89,7 @@ fn handle_connection(mut stream: TcpStream)
                 println!("IS_RUNNING:{0}", global::IS_RUNNING);
             }
         }
+        // std::process::exit(0);
     } else {
         println!("request path:{0}", req_header.path);
     }
